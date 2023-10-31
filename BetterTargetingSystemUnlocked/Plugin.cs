@@ -169,7 +169,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
         if (Configuration.NinjaOneshotLB.IsPressed())
         {
             try { KeyState[(int)Configuration.NinjaOneshotLB.Key!] = false; } catch { }
-            TargetClosest(false, 45);
+            TargetClosest(false, 49);
             return;
         }
     }
@@ -180,7 +180,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
         TargetManager.Target = target;
     }
 
-    private void TargetClosest(bool lowestHealth = false, uint targetPercentageHP = 0)
+    private void TargetClosest(bool lowestHealth = false, double targetPercentageHP = 0)
     {
         if (Client.LocalPlayer == null)
             return;
@@ -203,8 +203,9 @@ public sealed unsafe class Plugin : IDalamudPlugin
         {
             if (targetPercentageHP > 0)
             {
-                var availableTargets = _targets.Where(o => (int)((double)(((DalamudCharacter)o)?.CurrentHp! / ((DalamudCharacter)o)?.MaxHp)! * 100)! <= targetPercentageHP).ToList();
-                
+                var availableTargets = _targets
+                                       .Where(o => ((double)((DalamudCharacter)o).CurrentHp / ((DalamudCharacter)o).MaxHp) * 100 <= targetPercentageHP
+                                                   && ((double)((DalamudCharacter)o).CurrentHp / ((DalamudCharacter)o).MaxHp) * 100 > 0).ToList();
                 if (availableTargets.Any())
                 {
                     target = availableTargets.OrderBy(o => Utils.DistanceBetweenObjects(Client.LocalPlayer, o)).First();
