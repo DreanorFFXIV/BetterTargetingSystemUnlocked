@@ -155,7 +155,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
         if (Configuration.LowestHealthTargetKeybind.IsPressed())
         {
             try { KeyState[(int)Configuration.LowestHealthTargetKeybind.Key!] = false; } catch { }
-            TargetLowestHealth();
+            TargetClosest(true);
             return;
         }
 
@@ -169,7 +169,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
         if (Configuration.NinjaOneshotLB.IsPressed())
         {
             try { KeyState[(int)Configuration.NinjaOneshotLB.Key!] = false; } catch { }
-            TargetBestAOE();
+            TargetClosest(false, 45);
             return;
         }
     }
@@ -179,9 +179,6 @@ public sealed unsafe class Plugin : IDalamudPlugin
         TargetManager.SoftTarget = null;
         TargetManager.Target = target;
     }
-
-    private void TargetLowestHealth() => TargetClosest(true);
-    private void TargetNin() => TargetClosest(false, 45);
 
     private void TargetClosest(bool lowestHealth = false, uint targetPercentageHP = 0)
     {
@@ -196,16 +193,33 @@ public sealed unsafe class Plugin : IDalamudPlugin
 
         var _targets = OnScreenTargets.Count > 0 ? OnScreenTargets : EnemyListTargets;
 
-        var _target = lowestHealth
-                            ? _targets.OrderBy(o => (o as DalamudCharacter)?.CurrentHp)
-                                      .ThenBy(o => Utils.DistanceBetweenObjects(Client.LocalPlayer, o)).First()
-                            : targetPercentageHP > 0
-                                ? _targets.OrderBy(o => (o as DalamudCharacter)?.CurrentHp <= targetPercentageHP)
-                                          .ThenBy(o => Utils.DistanceBetweenObjects(Client.LocalPlayer, o)).First()
-                                : _targets.OrderBy(o => Utils.DistanceBetweenObjects(Client.LocalPlayer, o)).First();
-        
-        
-        SetTarget(_target);
+        DalamudGameObject? target = null;
+        if (lowestHealth)
+        {
+            target = _targets.OrderBy(o => (o as DalamudCharacter)?.CurrentHp)
+                              .ThenBy(o => Utils.DistanceBetweenObjects(Client.LocalPlayer, o)).First();
+        }
+        else
+        {
+            if (targetPercentageHP > 0)
+            {
+                var availableTargets = _targets.Where(o => (int)((double)(((DalamudCharacter)o)?.CurrentHp! / ((DalamudCharacter)o)?.MaxHp)! * 100)! <= targetPercentageHP).ToList();
+                
+                if (availableTargets.Any())
+                {
+                    target = availableTargets.OrderBy(o => Utils.DistanceBetweenObjects(Client.LocalPlayer, o)).First();
+                }
+            }
+            else
+            {
+                target = _targets.OrderBy(o => Utils.DistanceBetweenObjects(Client.LocalPlayer, o)).First();
+            }
+        }
+
+        if (target != null)
+        {
+            SetTarget(target);
+        }
     }
 
     private class AOETarget
