@@ -18,6 +18,7 @@ namespace BetterTargetingSystemUnlocked.Windows
         private bool ModifyingKeybindCTK = false;
         private bool ModifyingKeybindLHTK = false;
         private bool ModifyingKeybindBAOETK = false;
+        private bool ModifyingKeybindNinTK = false;
 
         public ConfigWindow(Plugin plugin) : base(
             "Better Targeting System Unlocked",
@@ -53,7 +54,7 @@ namespace BetterTargetingSystemUnlocked.Windows
 
         private void KeybindsConfig()
         {
-            if (this.ModifyingKeybindTTK || this.ModifyingKeybindCTK || this.ModifyingKeybindLHTK || this.ModifyingKeybindBAOETK)
+            if (this.ModifyingKeybindTTK || this.ModifyingKeybindCTK || this.ModifyingKeybindLHTK || this.ModifyingKeybindBAOETK || ModifyingKeybindNinTK)
                 this.CurrentKeys = GetKeys();
 
             var tabTargetKeybind = this.ModifyingKeybindTTK
@@ -68,6 +69,9 @@ namespace BetterTargetingSystemUnlocked.Windows
             var bestAOETargetKeybind = this.ModifyingKeybindBAOETK
                 ? this.CurrentKeys.ToString()
                 : (this.Configuration.BestAOETargetKeybind.Key != null ? this.Configuration.BestAOETargetKeybind.ToString() : "None");
+            var ninjaOneshotLB = this.ModifyingKeybindNinTK
+                ? this.CurrentKeys.ToString()
+                : (this.Configuration.NinjaOneshotLB.Key != null ? this.Configuration.NinjaOneshotLB.ToString() : "None");
 
             //ImGui.Text("Keybinds Configuration:\n\n");
             ImGui.PushItemWidth(170);
@@ -175,6 +179,33 @@ namespace BetterTargetingSystemUnlocked.Windows
             else
             {
                 this.ModifyingKeybindBAOETK = false;
+            }
+            
+            ImGui.Text("\n");
+
+            ImGui.Text("[Ninja Oneshot LB Target]");
+            ImGui.InputText($"##nintk_Keybind", ref ninjaOneshotLB, 200, ImGuiInputTextFlags.ReadOnly);
+            if (ImGui.IsItemActive())
+            {
+                ImGui.SetTooltip("Use Backspace to remove keybind");
+                ModifyingKeybindNinTK = true;
+                // Prevent trying to set Alt-Tab as a keybind
+                if (this.CurrentKeys.Key != null && (this.CurrentKeys.Key != VirtualKey.TAB || this.CurrentKeys.AltModifier == false))
+                {
+                    this.Configuration.NinjaOneshotLB = this.CurrentKeys;
+                    this.Configuration.Save();
+                    UnfocusInput();
+                }
+                else if (ImGui.IsKeyPressed(ImGuiKey.Backspace))
+                {
+                    this.Configuration.NinjaOneshotLB = new Keybind();
+                    this.Configuration.Save();
+                    UnfocusInput();
+                }
+            }
+            else
+            {
+                ModifyingKeybindNinTK = false;
             }
         }
 
@@ -369,6 +400,7 @@ namespace BetterTargetingSystemUnlocked.Windows
             this.ModifyingKeybindCTK = false;
             this.ModifyingKeybindLHTK = false;
             this.ModifyingKeybindBAOETK = false;
+            this.ModifyingKeybindNinTK = false;
             this.CurrentKeys = new Keybind();
             ImGui.SetWindowFocus(null); // unfocus window to clear keyboard focus
             ImGui.SetWindowFocus(); // refocus window
