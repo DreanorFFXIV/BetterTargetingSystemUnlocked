@@ -169,7 +169,7 @@ public sealed unsafe class Plugin : IDalamudPlugin
         if (Configuration.NinjaOneshotLB.IsPressed())
         {
             try { KeyState[(int)Configuration.NinjaOneshotLB.Key!] = false; } catch { }
-            TargetClosest(false, 49);
+            TargetClosest(false, Configuration.NinLBPercentage);
             return;
         }
     }
@@ -204,7 +204,8 @@ public sealed unsafe class Plugin : IDalamudPlugin
             if (targetPercentageHP > 0)
             {
                 var availableTargets = _targets
-                                       .Where(o => ((double)((DalamudCharacter)o).CurrentHp / ((DalamudCharacter)o).MaxHp) * 100 <= targetPercentageHP
+                                       .Where(o => o.ObjectKind == ObjectKind.Player 
+                                                   && ((double)((DalamudCharacter)o).CurrentHp / ((DalamudCharacter)o).MaxHp) * 100 <= targetPercentageHP
                                                    && ((double)((DalamudCharacter)o).CurrentHp / ((DalamudCharacter)o).MaxHp) * 100 > 0).ToList();
                 if (availableTargets.Any())
                 {

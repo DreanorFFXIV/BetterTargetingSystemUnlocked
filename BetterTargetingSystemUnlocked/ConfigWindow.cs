@@ -375,6 +375,26 @@ namespace BetterTargetingSystemUnlocked.Windows
                 }
                 ImGui.EndTable();
             }
+            
+            ImGui.Text("\n[NIN LB Settings]");
+            if (ImGui.BeginTable("SettingsConfigTable", 2, ImGuiTableFlags.NoPadOuterX | ImGuiTableFlags.NoPadOuterX))
+            {
+                ImGui.TableSetupColumn("", ImGuiTableColumnFlags.None, 50);
+                ImGui.TableSetupColumn("", ImGuiTableColumnFlags.None, 112);
+                ImGui.TableNextColumn();
+                ImGui.Text("HP%%");
+                ImGui.TableNextColumn();
+                ImGui.PushItemWidth(112);
+                var ninLbPercentage = Configuration.NinLBPercentage;
+                if (ImGui.DragFloat("##NinLBSettings", ref ninLbPercentage, .1f, 1f, 50f))
+                {
+                    ninLbPercentage = Math.Clamp(ninLbPercentage, 1f, 50f);
+                    Configuration.NinLBPercentage = (float)Math.Round(ninLbPercentage, 1);
+                    Configuration.Save();
+                }
+                ImGui.EndTable();
+            }
+            
             ImGui.NewLine();
             if (ImGui.Button("Reset settings to defaults", new Vector2(170,25)))
             {
@@ -388,6 +408,7 @@ namespace BetterTargetingSystemUnlocked.Windows
                 Configuration.Cone3Distance = 40;
                 Configuration.CloseTargetsCircleEnabled = true;
                 Configuration.CloseTargetsCircleRadius = 5;
+                Configuration.NinLBPercentage = 50;
                 Configuration.Save();
             }
 
